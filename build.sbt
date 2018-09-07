@@ -14,7 +14,7 @@ scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
 scalacOptions in Test ++= Seq("-Yrangepos")
 
-mainClass in Compile := Some("org.renci.translator.Main")
+mainClass in Compile := Some("org.renci.translator.ctd.Main")
 
 javaOptions += "-Xmx8G"
 
@@ -24,12 +24,14 @@ fork in Test := true
 
 libraryDependencies ++= {
   Seq(
+    "org.scala-lang.modules"      %% "scala-xml"              % "1.1.0",
     "org.scalaz"                  %% "scalaz-core"            % "7.2.24",
     "net.sourceforge.owlapi"      %  "owlapi-distribution"    % "4.5.2",
     "org.phenoscape"              %% "scowl"                  % "1.3.1",
     "com.typesafe.scala-logging"  %% "scala-logging"          % "3.9.0",
     "ch.qos.logback"              %  "logback-classic"        % "1.2.3",
     "org.codehaus.groovy"         %  "groovy-all"             % "2.4.6",
+    "org.geneontology"            %% "whelk"                  % "0.1-SNAPSHOT",
     "com.lihaoyi"                 %% "utest"                  % "0.6.3" % Test
   )
 }
