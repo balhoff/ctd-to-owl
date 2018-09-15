@@ -1,0 +1,104 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX acts_upstream_of: <http://purl.obolibrary.org/obo/RO_0002263>
+PREFIX auo_pe: <http://purl.obolibrary.org/obo/RO_0004034>
+PREFIX auo_ne: <http://purl.obolibrary.org/obo/RO_0004035>
+PREFIX Gene: <http://purl.obolibrary.org/obo/SO_0000704>
+PREFIX Chemical: <http://purl.obolibrary.org/obo/CHEBI_24431>
+PREFIX causally_upstream_of: <http://purl.obolibrary.org/obo/RO_0002411>
+PREFIX has_input: <http://purl.obolibrary.org/obo/RO_0002233>
+PREFIX enabled_by: <http://purl.obolibrary.org/obo/RO_0002333>
+PREFIX GeneExpression: <http://purl.obolibrary.org/obo/GO_0010467>
+PREFIX CoTreatment: <http://purl.obolibrary.org/obo/CTDI_26>
+PREFIX ResponseToChemical: <http://purl.obolibrary.org/obo/GO_0042221>
+PREFIX MetabolicProcess: <http://purl.obolibrary.org/obo/GO_0008152>
+PREFIX MolecularFunction: <http://purl.obolibrary.org/obo/GO_0003674>
+PREFIX Methylation: <http://purl.obolibrary.org/obo/GO_0032259>
+PREFIX Transport: <http://purl.obolibrary.org/obo/GO_0006810>
+PREFIX ImportIntoCell: <http://purl.obolibrary.org/obo/GO_0098657>
+PREFIX Cleavage: <http://purl.obolibrary.org/obo/CTDI_8>
+PREFIX Oxidation: <http://purl.obolibrary.org/obo/CTDI_20>
+PREFIX ChemicalSynthesis: <http://purl.obolibrary.org/obo/CTDI_10>
+PREFIX Phosphorylation: <http://purl.obolibrary.org/obo/GO_0016310>
+PREFIX Localization: <http://purl.obolibrary.org/obo/GO_0051179>
+PREFIX Secretion: <http://purl.obolibrary.org/obo/GO_0046903>
+PREFIX RNASplicing: <http://purl.obolibrary.org/obo/GO_0008380>
+PREFIX ProteinOLinkedGlycosylation: <http://purl.obolibrary.org/obo/GO_0006493>
+PREFIX Binding: <http://purl.obolibrary.org/obo/GO_0005488>
+PREFIX has_form: <http://ctd.example.org/has_form>
+PREFIX occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
+
+SELECT DISTINCT ?chem_type ?chem_label ?degree ?interaction ?direction ?gene_type ?gene_label (STR(?form_typed) AS ?form) ?taxon ?process_type
+WHERE {
+{
+  ?chem ?rel ?process .
+  ?process has_input:|enabled_by: ?gene .
+  ?process rdf:type ?process_type .
+  ?process_type rdfs:label ?process_label .
+  # TODO get this from reasoning?
+  ?process (^causally_upstream_of:)* / occurs_in: / rdf:type ?taxon .
+  ?gene rdfs:label ?gene_label .
+  ?gene has_form: ?form_typed .
+  ?chem rdfs:label ?chem_label .
+  ?gene rdf:type Gene: .
+  ?gene rdf:type ?gene_type .
+  ?chem rdf:type Chemical: .
+  ?chem rdf:type ?chem_type .
+  VALUES ?direction { "->" }
+  VALUES (?process_type ?interaction) {
+    (GeneExpression: "affects expression of")
+    (Methylation: "affects molecular modification of")
+    (MolecularFunction: "affects activity of")
+    (ResponseToChemical: "affects response to")
+    (Phosphorylation: "affects molecular modification of")
+    (Binding: "molecularly interacts with")
+  }
+  VALUES (?rel ?degree) {
+    (acts_upstream_of: "somehow")
+    (auo_pe: "positively")
+    (auo_ne: "negatively")
+  }
+  FILTER (?chem_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?gene_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?process_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?taxon NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?rel IN (auo_pe:, auo_ne:) || NOT EXISTS { ?chem auo_pe:|auo_ne: ?process })
+}
+UNION
+{
+  ?gene ?rel ?process .
+  ?process has_input:|enabled_by: ?chem .
+  ?process rdf:type ?process_type .
+  ?process_type rdfs:label ?process_label .
+  ?process (^causally_upstream_of:)* / occurs_in: / rdf:type ?taxon .
+  ?gene rdfs:label ?gene_label .
+  ?gene has_form: ?form_typed .
+  ?chem rdfs:label ?chem_label .
+  ?gene rdf:type Gene: .
+  ?gene rdf:type ?gene_type .
+  ?chem rdf:type Chemical: .
+  ?chem rdf:type ?chem_type .
+  VALUES ?direction { "<-" }
+  VALUES (?process_type ?interaction) {
+    (GeneExpression: "affects expression of")
+    (Methylation: "affects molecular modification of")
+    (MolecularFunction: "affects activity of")
+    (ResponseToChemical: "affects response to")
+    (Phosphorylation: "affects molecular modification of")
+    (Binding: "molecularly interacts with")
+  }
+  VALUES (?rel ?degree) {
+    (acts_upstream_of: "somehow")
+    (auo_pe: "positively")
+    (auo_ne: "negatively")
+  }
+  FILTER (?chem_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?gene_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?process_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?taxon NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?rel IN (auo_pe:, auo_ne:) || NOT EXISTS { ?chem auo_pe:|auo_ne: ?process })
+}
+
+}
+#LIMIT 200
