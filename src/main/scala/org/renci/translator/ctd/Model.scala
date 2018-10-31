@@ -25,9 +25,15 @@ object Model {
       val parentID = (node \ "@parentid").head.text
       val ixnID = s"$CTDIXN$parentID#$taxonIndex"
       val actorInd = Individual(s"$ixnID-$position")
-      val label = s"${node.text}#$parentID-$position"
-      val formAnnotations = (node \ "@form").map(_.text).map(form => actorInd Annotation (HasForm, form))
-      (actorInd, Set(actorInd Type actorClass, actorInd Type nodeType, actorInd Annotation (RDFSLabel, label)) ++ formAnnotations)
+      val typeLabel = node.text
+      val label = s"$typeLabel#$parentID-$position"
+      val formAnnotations = (node \ "@form").map(_.text).map(form => actorInd Annotation(HasForm, form))
+      (actorInd, Set(
+        actorInd Type actorClass,
+        actorClass Annotation(RDFSLabel, typeLabel),
+        actorInd Type nodeType,
+        actorInd Annotation(RDFSLabel, label)
+      ) ++ formAnnotations)
     }
 
   }

@@ -3,17 +3,20 @@ package org.renci.translator.ctd
 import org.phenoscape.scowl._
 import org.semanticweb.owlapi.model.OWLObjectProperty
 import org.semanticweb.owlapi.apibinding.OWLManager
+import org.semanticweb.owlapi.vocab.DublinCoreVocabulary
 
 object Vocab {
 
   val factory = OWLManager.getOWLDataFactory
   val TopProperty = factory.getOWLTopObjectProperty
   val HasForm = AnnotationProperty("http://ctd.example.org/has_form")
+  val DCSource = AnnotationProperty(DublinCoreVocabulary.SOURCE.getIRI)
 
   val OBO = "http://purl.obolibrary.org/obo"
   val CTDIXN = "http://ctdbase.org/detail.go?type=relationship&ixnId="
   val MESH = "http://id.nlm.nih.gov/mesh"
   val NCBIGENE = "http://identifiers.org/ncbigene"
+  val PMID = "https://www.ncbi.nlm.nih.gov/pubmed"
   val ChemicalEntity = Class(s"$OBO/CHEBI_24431")
   val Gene = Class(s"$OBO/SO_0000704")
   val ActsUpstreamOf = ObjectProperty(s"$OBO/RO_0002263") // material entity to process
@@ -45,6 +48,7 @@ object Vocab {
   val ResponseToChemical = Class(s"$OBO/GO_0042221")
   val MetabolicProcess = Class(s"$OBO/GO_0008152")
   val Methylation = Class(s"$OBO/GO_0032259")
+  val Abundance = Class(s"$OBO/CTDI_1")
   val Process = Class(s"$OBO/BFO_0000015")
 
   val IxnTypes = Map(

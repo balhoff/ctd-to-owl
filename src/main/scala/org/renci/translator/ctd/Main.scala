@@ -39,15 +39,17 @@ object Main extends App with LazyLogging {
 
   def process(ixn: Elem, reasoner: ReasonerState): Set[OWLAxiom] = {
     val id = (ixn \ "@id").head.text
+    val pmids = (ixn \ "reference").flatMap(_ \ "@pmid").map(_.text).map(p => IRI.create(s"$PMID/$p"))
     val axioms = (ixn \ "taxon").zipWithIndex.flatMap {
       case (taxonNode, taxonIndex) =>
         interaction(ixn, taxonIndex).map {
           case (ixnInd, affectorInd, ixnAxioms) =>
+            val pubmedLinks = pmids.map(ixnInd Annotation (DCSource, _))
             val taxon = Class(s"$OBO/NCBITaxon_${(taxonNode \ "@id").head.text}")
             val label = s"${taxonNode.text}#$id"
             val organismID = s"${ixnInd.getIRI}#organism"
             val organism = Individual(organismID)
-            ixnAxioms ++ Set(
+            ixnAxioms ++ pubmedLinks ++ Set(
               organism Type taxon,
               organism Annotation (RDFSLabel, label),
               ixnInd Fact (OccursIn, organism))
