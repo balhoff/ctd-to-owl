@@ -1,6 +1,7 @@
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX acts_upstream_of: <http://purl.obolibrary.org/obo/RO_0002263>
 PREFIX auo_pe: <http://purl.obolibrary.org/obo/RO_0004034>
 PREFIX auo_ne: <http://purl.obolibrary.org/obo/RO_0004035>
@@ -29,35 +30,44 @@ PREFIX Binding: <http://purl.obolibrary.org/obo/GO_0005488>
 PREFIX has_form: <http://ctd.example.org/has_form>
 PREFIX occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
 
-SELECT DISTINCT ?chem_type ?chem_label ?degree ?interaction ?direction ?gene_type ?gene_label (STR(?form_typed) AS ?form) ?taxon ?process_type
+SELECT DISTINCT (REPLACE(STR(?chem_type), "http://id\\.nlm\\.nih\\.gov/mesh/", "mesh:") AS ?chemicalID) (STR(?chem_type_label) AS ?chem_label) ?interaction ?direction (REPLACE(STR(?gene_type), "http://identifiers\\.org/ncbigene:", "ncbigene:") AS ?geneID) (STR(?gene_type_label) AS ?gene_label) (STR(?form_typed) AS ?form) (REPLACE(STR(?taxon), "http://purl\\.obolibrary\\.org/obo/NCBITaxon_", "ncbitaxon:") AS ?taxonID) ?process_type ?process
+
+#(GROUP_CONCAT(REPLACE(?pmid, "https://www\\.ncbi\\.nlm\\.nih\\.gov/pubmed", "pmid:"); separator="|") AS ?pmids)
 WHERE {
 {
   ?chem ?rel ?process .
   ?process has_input:|enabled_by: ?gene .
   ?process rdf:type ?process_type .
-  ?process_type rdfs:label ?process_label .
   # TODO get this from reasoning?
   ?process (^causally_upstream_of:)* / occurs_in: / rdf:type ?taxon .
-  ?gene rdfs:label ?gene_label .
+#  ?process (^causally_upstream_of:)* / dc:source ?pmid .
+  ?gene_type rdfs:label ?gene_type_label .
   ?gene has_form: ?form_typed .
-  ?chem rdfs:label ?chem_label .
   ?gene rdf:type Gene: .
   ?gene rdf:type ?gene_type .
   ?chem rdf:type Chemical: .
   ?chem rdf:type ?chem_type .
+  ?chem_type rdfs:label ?chem_type_label .
   VALUES ?direction { "->" }
-  VALUES (?process_type ?interaction) {
-    (GeneExpression: "affects expression of")
-    (Methylation: "affects molecular modification of")
-    (MolecularFunction: "affects activity of")
-    (ResponseToChemical: "affects response to")
-    (Phosphorylation: "affects molecular modification of")
-    (Binding: "molecularly interacts with")
-  }
-  VALUES (?rel ?degree) {
-    (acts_upstream_of: "somehow")
-    (auo_pe: "positively")
-    (auo_ne: "negatively")
+  VALUES (?rel ?process_type ?interaction) {
+    (acts_upstream_of: GeneExpression: "affects expression of")
+    (auo_pe: GeneExpression: "increases expression of")
+    (auo_ne: GeneExpression: "decreases expression of")
+    (acts_upstream_of: Methylation: "affects molecular modification of")
+    (auo_pe: Methylation: "increases molecular modification of")
+    (auo_ne: Methylation: "decreases molecular modification of")
+    (acts_upstream_of: MolecularFunction: "affects activity of")
+    (auo_pe: MolecularFunction: "increases activity of")
+    (auo_ne: MolecularFunction: "decreases activity of")
+    (acts_upstream_of: ResponseToChemical: "affects response to")
+    (auo_pe: ResponseToChemical: "increases response to")
+    (auo_ne: ResponseToChemical: "decreases response to")
+    (acts_upstream_of: Phosphorylation: "affects molecular modification of")
+    (auo_pe: Phosphorylation: "increases molecular modification of")
+    (auo_ne: Phosphorylation: "decreases molecular modification of")
+    (acts_upstream_of: Binding: "molecularly interacts with")
+    (auo_pe: Binding: "increases molecular interaction with")
+    (auo_ne: Binding: "decreases molecular interaction with")
   }
   FILTER (?chem_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
   FILTER (?gene_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
@@ -70,28 +80,35 @@ UNION
   ?gene ?rel ?process .
   ?process has_input:|enabled_by: ?chem .
   ?process rdf:type ?process_type .
-  ?process_type rdfs:label ?process_label .
   ?process (^causally_upstream_of:)* / occurs_in: / rdf:type ?taxon .
-  ?gene rdfs:label ?gene_label .
+#  ?process (^causally_upstream_of:)* / dc:source ?pmid .
   ?gene has_form: ?form_typed .
-  ?chem rdfs:label ?chem_label .
   ?gene rdf:type Gene: .
   ?gene rdf:type ?gene_type .
+  ?gene_type rdfs:label ?gene_type_label .
   ?chem rdf:type Chemical: .
   ?chem rdf:type ?chem_type .
+  ?chem_type rdfs:label ?chem_type_label .
   VALUES ?direction { "<-" }
-  VALUES (?process_type ?interaction) {
-    (GeneExpression: "affects expression of")
-    (Methylation: "affects molecular modification of")
-    (MolecularFunction: "affects activity of")
-    (ResponseToChemical: "affects response to")
-    (Phosphorylation: "affects molecular modification of")
-    (Binding: "molecularly interacts with")
-  }
-  VALUES (?rel ?degree) {
-    (acts_upstream_of: "somehow")
-    (auo_pe: "positively")
-    (auo_ne: "negatively")
+  VALUES (?rel ?process_type ?interaction) {
+    (acts_upstream_of: GeneExpression: "affects expression of")
+    (auo_pe: GeneExpression: "increases expression of")
+    (auo_ne: GeneExpression: "decreases expression of")
+    (acts_upstream_of: Methylation: "affects molecular modification of")
+    (auo_pe: Methylation: "increases molecular modification of")
+    (auo_ne: Methylation: "decreases molecular modification of")
+    (acts_upstream_of: MolecularFunction: "affects activity of")
+    (auo_pe: MolecularFunction: "increases activity of")
+    (auo_ne: MolecularFunction: "decreases activity of")
+    (acts_upstream_of: ResponseToChemical: "affects response to")
+    (auo_pe: ResponseToChemical: "increases response to")
+    (auo_ne: ResponseToChemical: "decreases response to")
+    (acts_upstream_of: Phosphorylation: "affects molecular modification of")
+    (auo_pe: Phosphorylation: "increases molecular modification of")
+    (auo_ne: Phosphorylation: "decreases molecular modification of")
+    (acts_upstream_of: Binding: "molecularly interacts with")
+    (auo_pe: Binding: "increases molecular interaction with")
+    (auo_ne: Binding: "decreases molecular interaction with")
   }
   FILTER (?chem_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
   FILTER (?gene_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
@@ -101,4 +118,5 @@ UNION
 }
 
 }
-#LIMIT 200
+#GROUP BY ?chem_type ?chem_type_label ?degree ?interaction ?direction ?gene_type ?gene_type_label ?form_typed ?taxon ?process_type
+#LIMIT 20
