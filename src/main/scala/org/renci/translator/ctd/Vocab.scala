@@ -1,13 +1,13 @@
 package org.renci.translator.ctd
 
 import org.phenoscape.scowl._
-import org.semanticweb.owlapi.model.OWLObjectProperty
 import org.semanticweb.owlapi.apibinding.OWLManager
+import org.semanticweb.owlapi.model.OWLObjectProperty
 import org.semanticweb.owlapi.vocab.DublinCoreVocabulary
 
 object Vocab {
 
-  val factory = OWLManager.getOWLDataFactory
+  private val factory = OWLManager.getOWLDataFactory
   val TopProperty = factory.getOWLTopObjectProperty
   val HasForm = AnnotationProperty("http://ctd.example.org/has_form")
   val DCSource = AnnotationProperty(DublinCoreVocabulary.SOURCE.getIRI)
