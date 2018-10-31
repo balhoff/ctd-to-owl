@@ -1,11 +1,10 @@
 package org.renci.translator.ctd
 
-import scala.xml.Node
-import org.semanticweb.owlapi.model.OWLNamedIndividual
-import org.semanticweb.owlapi.model.OWLAxiom
 import org.phenoscape.scowl._
-import Vocab._
-import org.semanticweb.owlapi.model.OWLClass
+import org.renci.translator.ctd.Vocab._
+import org.semanticweb.owlapi.model.{OWLAxiom, OWLClass, OWLNamedIndividual}
+
+import scala.xml.Node
 
 object Model {
 
