@@ -37,6 +37,7 @@ object Vocab {
   val Binding = Class(s"$OBO/GO_0005488")
   val Cleavage = Class(s"$OBO/CTDI_8")
   val Oxidation = Class(s"$OBO/CTDI_20")
+  val Reduction = Class(s"$OBO/CTDI_21")
   val ChemicalSynthesis = Class(s"$OBO/CTDI_10")
   val Phosphorylation = Class(s"$OBO/GO_0016310")
   val Localization = Class(s"$OBO/GO_0051179")
@@ -50,26 +51,58 @@ object Vocab {
   val Methylation = Class(s"$OBO/GO_0032259")
   val Abundance = Class(s"$OBO/CTDI_1")
   val Process = Class(s"$OBO/BFO_0000015")
+  val Mutagenesis = Class(s"$OBO/CTDI_19")
+  val Uptake = Class(s"$OBO/CTDI_25")
+  val CatabolicProcess = Class(s"$OBO/GO_0009056")
+  val ProteinGlucuronidation = Class(s"$OBO/GO_0018411")
+  val Stability = Class(s"$OBO/CTDI_24")
+  val Acetylation = Class(s"$OBO/CTDI_2")
+  val Folding = Class(s"$OBO/CTDI_13")
+  val ProteinUbiquitination = Class(s"$OBO/GO_0016567")
+  val ProteinNitrosylation = Class(s"$OBO/GO_0017014")
+  val Alkylation = Class(s"$OBO/CTDI_5")
+  val ProteinSumoylation = Class(s"$OBO/GO_0016925")
+  val ProteinPrenylation = Class(s"$OBO/GO_0018342")
+  val Glycation = Class(s"$OBO/CTDI_15")
+  val Hydroxylation = Class(s"$OBO/CTDI_16")
 
   val IxnTypes = Map(
     "exp" -> GeneExpression,
     "w" -> CoTreatment,
     "rec" -> ResponseToChemical,
     "met" -> MetabolicProcess,
-    //"rxn" -> MolecularFunction,
     "act" -> MolecularFunction,
     "myl" -> Methylation,
-    "upt" -> Transport,
+    "upt" -> Uptake,
     "imt" -> ImportIntoCell,
     "b" -> Binding,
     "clv" -> Cleavage,
     "oxd" -> Oxidation,
+    "red" -> Reduction,
     "csy" -> ChemicalSynthesis,
     "pho" -> Phosphorylation,
     "loc" -> Localization,
     "sec" -> Secretion,
     "spl" -> RNASplicing,
-    "ogl" -> ProteinOLinkedGlycosylation)
+    "ogl" -> ProteinOLinkedGlycosylation,
+    "mut" -> Mutagenesis,
+    "trt" -> Transport,
+    "deg" -> CatabolicProcess,
+    "sta" -> Stability,
+    "ace" -> Acetylation,
+    "fol" -> Folding,
+    "ubq" -> ProteinUbiquitination,
+    "nit" -> ProteinNitrosylation,
+    "alk" -> Alkylation,
+    "sum" -> ProteinSumoylation,
+    "pre" -> ProteinPrenylation,
+    "gyc" -> Glycation,
+    "abu" -> Abundance,
+    "glc" -> ProteinGlucuronidation,
+    "hdx" -> Hydroxylation
+  )
+
+  //"rxn" -> MolecularFunction,
 
   def materialToProcess(degree: String): OWLObjectProperty = degree match {
     case "1" => ActsUpstreamOf

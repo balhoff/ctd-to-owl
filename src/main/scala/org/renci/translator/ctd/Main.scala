@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geneontology.whelk.{AtomicConcept, Bridge, ConceptAssertion, ConceptInclusion, Reasoner, ReasonerState, Role, RoleAssertion, Individual => WIndividual}
 import org.phenoscape.scowl._
 import org.renci.translator.ctd.Model._
+import org.renci.translator.ctd.Model.Gene
 import org.renci.translator.ctd.Vocab._
 import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat
@@ -187,7 +188,39 @@ object Main extends App with LazyLogging {
               ixnInd Fact(EnabledBy, chemInd),
               ixnInd Fact(relation, innerAffector)))
         }
-      case _                                                                                                                                 => None //FIXME
+
+      case Interaction(itype :: Nil, _, (chem: Chemical) :: (gene: Gene) :: Nil)
+        if Set("sec", "loc", "clv", "mut", "deg", "spl", "rec", "sta", "met", "oxd", "ubq", "nit", "upt", "red", "alk", "sum", "gyc")(itype) =>
+        val (chemInd, chemAxioms) = chem.owl(taxonIndex)
+        val chemProcess = Individual(s"${chemInd.getIRI.toString}-process")
+        val (geneInd, geneAxioms) = gene.owl(taxonIndex)
+        val axn = (ixnNode \ "axn").head
+        val relation = processToProcess((axn \ "@degreecode").head.text)
+        val ixnType = IxnTypes(itype)
+        Some(chemProcess, chemAxioms ++ geneAxioms ++ Set(
+          ixnInd Type ixnType,
+          chemProcess Type Process,
+          chemProcess Fact(EnabledBy, chemInd),
+          chemProcess Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, geneInd)))
+
+      case Interaction(itype :: Nil, _, (gene: Gene) :: (chem: Chemical) :: Nil)
+        if Set("met", "trt", "glc", "csy", "upt", "oxd", "sec", "red", "hdx")(itype) =>
+        //TODO no "abu", "b", "act" for now - different model?
+        val (geneInd, geneAxioms) = gene.owl(taxonIndex)
+        val (chemInd, chemAxioms) = chem.owl(taxonIndex)
+        val geneFunction = Individual(s"${geneInd.getIRI.toString}-function")
+        val axn = (ixnNode \ "axn").head
+        val relation = processToProcess((axn \ "@degreecode").head.text)
+        val ixnType = IxnTypes(itype)
+        Some(geneFunction, chemAxioms ++ geneAxioms ++ Set(
+          ixnInd Type ixnType,
+          geneFunction Type MolecularFunction,
+          geneFunction Fact(EnabledBy, geneInd),
+          geneFunction Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, chemInd)))
+
+      case _ => None //FIXME
     }
 
     maybeAffectorAndAxioms.map {
