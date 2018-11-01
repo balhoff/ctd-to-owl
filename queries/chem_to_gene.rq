@@ -1,0 +1,170 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX acts_upstream_of: <http://purl.obolibrary.org/obo/RO_0002263>
+PREFIX auo_pe: <http://purl.obolibrary.org/obo/RO_0004034>
+PREFIX auo_ne: <http://purl.obolibrary.org/obo/RO_0004035>
+PREFIX Gene: <http://purl.obolibrary.org/obo/SO_0000704>
+PREFIX Chemical: <http://purl.obolibrary.org/obo/CHEBI_24431>
+PREFIX causally_upstream_of: <http://purl.obolibrary.org/obo/RO_0002411>
+PREFIX has_input: <http://purl.obolibrary.org/obo/RO_0002233>
+PREFIX enabled_by: <http://purl.obolibrary.org/obo/RO_0002333>
+PREFIX GeneExpression: <http://purl.obolibrary.org/obo/GO_0010467>
+PREFIX CoTreatment: <http://purl.obolibrary.org/obo/CTDI_26>
+PREFIX ResponseToChemical: <http://purl.obolibrary.org/obo/GO_0042221>
+PREFIX MetabolicProcess: <http://purl.obolibrary.org/obo/GO_0008152>
+PREFIX MolecularFunction: <http://purl.obolibrary.org/obo/GO_0003674>
+PREFIX Methylation: <http://purl.obolibrary.org/obo/GO_0032259>
+PREFIX Transport: <http://purl.obolibrary.org/obo/GO_0006810>
+PREFIX ImportIntoCell: <http://purl.obolibrary.org/obo/GO_0098657>
+PREFIX Cleavage: <http://purl.obolibrary.org/obo/CTDI_8>
+PREFIX Oxidation: <http://purl.obolibrary.org/obo/CTDI_20>
+PREFIX ChemicalSynthesis: <http://purl.obolibrary.org/obo/CTDI_10>
+PREFIX Phosphorylation: <http://purl.obolibrary.org/obo/GO_0016310>
+PREFIX Localization: <http://purl.obolibrary.org/obo/GO_0051179>
+PREFIX Secretion: <http://purl.obolibrary.org/obo/GO_0046903>
+PREFIX RNASplicing: <http://purl.obolibrary.org/obo/GO_0008380>
+PREFIX ProteinOLinkedGlycosylation: <http://purl.obolibrary.org/obo/GO_0006493>
+PREFIX Binding: <http://purl.obolibrary.org/obo/GO_0005488>
+PREFIX Reduction: <http://purl.obolibrary.org/obo/CTDI_21>
+PREFIX Abundance: <http://purl.obolibrary.org/obo/CTDI_1>
+PREFIX Mutagenesis: <http://purl.obolibrary.org/obo/CTDI_19>
+PREFIX Uptake: <http://purl.obolibrary.org/obo/CTDI_25>
+PREFIX CatabolicProcess: <http://purl.obolibrary.org/obo/GO_0009056>
+PREFIX ProteinGlucuronidation: <http://purl.obolibrary.org/obo/GO_0018411>
+PREFIX Stability: <http://purl.obolibrary.org/obo/CTDI_24>
+PREFIX Acetylation: <http://purl.obolibrary.org/obo/CTDI_2>
+PREFIX Folding: <http://purl.obolibrary.org/obo/CTDI_13>
+PREFIX ProteinUbiquitination: <http://purl.obolibrary.org/obo/GO_0016567>
+PREFIX ProteinNitrosylation: <http://purl.obolibrary.org/obo/GO_0017014>
+PREFIX Alkylation: <http://purl.obolibrary.org/obo/CTDI_5>
+PREFIX ProteinSumoylation: <http://purl.obolibrary.org/obo/GO_0016925>
+PREFIX ProteinPrenylation: <http://purl.obolibrary.org/obo/GO_0018342>
+PREFIX Glycation: <http://purl.obolibrary.org/obo/CTDI_15>
+PREFIX Hydroxylation: <http://purl.obolibrary.org/obo/CTDI_16>
+PREFIX has_form: <http://ctd.example.org/has_form>
+PREFIX occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
+
+SELECT DISTINCT (REPLACE(STR(?chem_type), "http://id\\.nlm\\.nih\\.gov/mesh/", "mesh:") AS ?chemicalID) (STR(?chem_type_label) AS ?chem_label) ?interaction ?direction (REPLACE(STR(?gene_type), "http://identifiers\\.org/ncbigene:", "ncbigene:") AS ?geneID) (STR(?gene_type_label) AS ?gene_label) (STR(?form_typed) AS ?form) (REPLACE(STR(?taxon), "http://purl\\.obolibrary\\.org/obo/NCBITaxon_", "ncbitaxon:") AS ?taxonID) ?process_type ?process (REPLACE(STR(?pmid), "https://www\\.ncbi\\.nlm\\.nih\\.gov/pubmed/", "pmid:") AS ?PMID)
+WHERE {
+  ?chem ?rel ?process .
+  FILTER (?rel IN (acts_upstream_of:, auo_pe:, auo_ne:))
+  ?process has_input:|enabled_by: ?gene .
+  ?process rdf:type ?process_type .
+  # TODO get this from reasoning?
+  ?x causally_upstream_of:? ?process .
+  ?x occurs_in: / rdf:type ?taxon .
+  ?x dc:source ?pmid .
+  ?gene_type rdfs:label ?gene_type_label .
+  ?gene has_form: ?form_typed .
+  ?gene rdf:type Gene: .
+  ?gene rdf:type ?gene_type .
+  ?chem rdf:type Chemical: .
+  ?chem rdf:type ?chem_type .
+  ?chem_type rdfs:label ?chem_type_label .
+  VALUES ?direction { "->" }
+  VALUES (?rel ?process_type ?interaction) {
+    (acts_upstream_of: GeneExpression: "affects expression of")
+    (auo_pe: GeneExpression: "increases expression of")
+    (auo_ne: GeneExpression: "decreases expression of")
+    (acts_upstream_of: Methylation: "affects molecular modification of")
+    (auo_pe: Methylation: "increases molecular modification of")
+    (auo_ne: Methylation: "decreases molecular modification of")
+    (acts_upstream_of: MolecularFunction: "affects activity of")
+    (auo_pe: MolecularFunction: "increases activity of")
+    (auo_ne: MolecularFunction: "decreases activity of")
+    (acts_upstream_of: ResponseToChemical: "affects response to")
+    (auo_pe: ResponseToChemical: "increases response to")
+    (auo_ne: ResponseToChemical: "decreases response to")
+    (acts_upstream_of: Phosphorylation: "affects molecular modification of")
+    (auo_pe: Phosphorylation: "increases molecular modification of")
+    (auo_ne: Phosphorylation: "decreases molecular modification of")
+    (acts_upstream_of: Binding: "molecularly interacts with")
+    (auo_pe: Binding: "increases molecular interaction with")
+    (auo_ne: Binding: "decreases molecular interaction with")
+    (acts_upstream_of: MetabolicProcess: "affects metabolic processing of")
+    (auo_pe: MetabolicProcess: "increases metabolic processing of")
+    (auo_ne: MetabolicProcess: "decreases metabolic processing of")
+    (acts_upstream_of: Transport: "affects transport of")
+    (auo_pe: Transport: "increases transport of")
+    (auo_ne: Transport: "decreases transport of")
+    (acts_upstream_of: ImportIntoCell: "affects uptake of")
+    (auo_pe: ImportIntoCell: "increases uptake of")
+    (auo_ne: ImportIntoCell: "decreases uptake of")
+    (acts_upstream_of: Cleavage: "affects degradation of")
+    (auo_pe: Cleavage: "increases degradation of")
+    (auo_ne: Cleavage: "decreases degradation of")
+    (acts_upstream_of: Oxidation: "affects molecular modification of")
+    (auo_pe: Oxidation: "increases molecular modification of")
+    (auo_ne: Oxidation: "decreases molecular modification of")
+    (acts_upstream_of: ChemicalSynthesis: "affects synthesis of")
+    (auo_pe: ChemicalSynthesis: "increases synthesis of")
+    (auo_ne: ChemicalSynthesis: "decreases synthesis of")
+    (acts_upstream_of: Localization: "affects localization of")
+    (auo_pe: Localization: "increases localization of")
+    (auo_ne: Localization: "decreases localization of")
+    (acts_upstream_of: Secretion: "affects secretion of")
+    (auo_pe: Secretion: "increases secretion of")
+    (auo_ne: Secretion: "decreases secretion of")
+    (acts_upstream_of: RNASplicing: "affects splicing of")
+    (auo_pe: RNASplicing: "increases splicing of")
+    (auo_ne: RNASplicing: "decreases splicing of")
+    (acts_upstream_of: ProteinOLinkedGlycosylation: "affects molecular modification of")
+    (auo_pe: ProteinOLinkedGlycosylation: "increases molecular modification of")
+    (auo_ne: ProteinOLinkedGlycosylation: "decreases molecular modification of")
+    (acts_upstream_of: Reduction: "affects molecular modification of")
+    (auo_pe: Reduction: "increases molecular modification of")
+    (auo_ne: Reduction: "decreases molecular modification of")
+    (acts_upstream_of: Abundance: "affects abundance of")
+    (auo_pe: Abundance: "increases abundance of")
+    (auo_ne: Abundance: "decreases abundance of")
+    (acts_upstream_of: Mutagenesis: "affects mutation rate of")
+    (auo_pe: Mutagenesis: "increases mutation rate of")
+    (auo_ne: Mutagenesis: "decreases mutation rate of")
+    (acts_upstream_of: Uptake: "affects uptake of")
+    (auo_pe: Uptake: "increases uptake of")
+    (auo_ne: Uptake: "decreases uptake of")
+    (acts_upstream_of: CatabolicProcess: "affects degradation of")
+    (auo_pe: CatabolicProcess: "increases degradation of")
+    (auo_ne: CatabolicProcess: "decreases degradation of")
+    (acts_upstream_of: ProteinGlucuronidation: "affects molecular modification of")
+    (auo_pe: ProteinGlucuronidation: "increases molecular modification of")
+    (auo_ne: ProteinGlucuronidation: "decreases molecular modification of")
+    (acts_upstream_of: Stability: "affects stability of")
+    (auo_pe: Stability: "increases stability of")
+    (auo_ne: Stability: "decreases stability of")
+    (acts_upstream_of: Acetylation: "affects molecular modification of")
+    (auo_pe: Acetylation: "increases molecular modification of")
+    (auo_ne: Acetylation: "decreases molecular modification of")
+    (acts_upstream_of: Folding: "affects folding of")
+    (auo_pe: Folding: "increases folding of")
+    (auo_ne: Folding: "decreases folding of")
+    (acts_upstream_of: ProteinUbiquitination: "affects molecular modification of")
+    (auo_pe: ProteinUbiquitination: "increases molecular modification of")
+    (auo_ne: ProteinUbiquitination: "decreases molecular modification of")
+    (acts_upstream_of: ProteinNitrosylation: "affects molecular modification of")
+    (auo_pe: ProteinNitrosylation: "increases molecular modification of")
+    (auo_ne: ProteinNitrosylation: "decreases molecular modification of")
+    (acts_upstream_of: Alkylation: "affects molecular modification of")
+    (auo_pe: Alkylation: "increases molecular modification of")
+    (auo_ne: Alkylation: "decreases molecular modification of")
+    (acts_upstream_of: ProteinSumoylation: "affects molecular modification of")
+    (auo_pe: ProteinSumoylation: "increases molecular modification of")
+    (auo_ne: ProteinSumoylation: "decreases molecular modification of")
+    (acts_upstream_of: ProteinPrenylation: "affects molecular modification of")
+    (auo_pe: ProteinPrenylation: "increases molecular modification of")
+    (auo_ne: ProteinPrenylation: "decreases molecular modification of")
+    (acts_upstream_of: Glycation: "affects molecular modification of")
+    (auo_pe: Glycation: "increases molecular modification of")
+    (auo_ne: Glycation: "decreases molecular modification of")
+    (acts_upstream_of: Hydroxylation: "affects molecular modification of")
+    (auo_pe: Hydroxylation: "increases molecular modification of")
+    (auo_ne: Hydroxylation: "decreases molecular modification of")
+  }
+  FILTER (?chem_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?gene_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?process_type NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?taxon NOT IN (Chemical:, Gene:, owl:NamedIndividual, owl:Thing, <http://purl.obolibrary.org/obo/BFO_0000002>, <http://purl.obolibrary.org/obo/BFO_0000003>, <http://purl.obolibrary.org/obo/BFO_0000004>, <http://purl.obolibrary.org/obo/BFO_0000015>, <http://purl.obolibrary.org/obo/BFO_0000040>))
+  FILTER (?rel IN (auo_pe:, auo_ne:) || NOT EXISTS { ?chem auo_pe:|auo_ne: ?process })
+}
