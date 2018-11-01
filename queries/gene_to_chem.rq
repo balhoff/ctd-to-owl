@@ -46,7 +46,7 @@ PREFIX Hydroxylation: <http://purl.obolibrary.org/obo/CTDI_16>
 PREFIX has_form: <http://ctd.example.org/has_form>
 PREFIX occurs_in: <http://purl.obolibrary.org/obo/BFO_0000066>
 
-SELECT DISTINCT (REPLACE(STR(?chem_type), "http://id\\.nlm\\.nih\\.gov/mesh/", "mesh:") AS ?chemicalID) (STR(?chem_type_label) AS ?chem_label) ?interaction ?direction (REPLACE(STR(?gene_type), "http://identifiers\\.org/ncbigene:", "ncbigene:") AS ?geneID) (STR(?gene_type_label) AS ?gene_label) (STR(?form_typed) AS ?form) (REPLACE(STR(?taxon), "http://purl\\.obolibrary\\.org/obo/NCBITaxon_", "ncbitaxon:") AS ?taxonID) ?process_type ?process (REPLACE(STR(?pmid), "https://www\\.ncbi\\.nlm\\.nih\\.gov/pubmed/", "pmid:") AS ?PMID)
+SELECT DISTINCT (REPLACE(STR(?chem_type), "http://id\\.nlm\\.nih\\.gov/mesh/", "mesh:") AS ?chemicalID) (STR(?chem_type_label) AS ?chem_label) ?interaction ?direction (REPLACE(STR(?gene_type), "http://identifiers\\.org/ncbigene:", "ncbigene:") AS ?geneID) (STR(?gene_type_label) AS ?gene_label) (STR(?form_typed) AS ?form) (REPLACE(STR(?taxon), "http://purl\\.obolibrary\\.org/obo/NCBITaxon_", "ncbitaxon:") AS ?taxonID) (REPLACE(STR(?pmid), "https://www\\.ncbi\\.nlm\\.nih\\.gov/pubmed/", "pmid:") AS ?PMID)
 WHERE {
   ?gene ?rel ?process .
   FILTER (?rel IN (acts_upstream_of:, auo_pe:, auo_ne:))
