@@ -110,9 +110,9 @@ object Main extends App with LazyLogging {
           cotreatmentInd Fact (relation, ixnInd),
           ixnInd Fact (HasInput, geneInd)))
 
-      case Interaction("rxn" :: Nil, _, (chem: Chemical) :: Interaction("exp" :: Nil, expressionNode, (expChem: Chemical) :: (expGene: Gene) :: Nil) :: Nil) =>
-        interaction(expressionNode, taxonIndex).map {
-          case (innerExp, innerAffector, innerAxioms) =>
+      case Interaction("rxn" :: Nil, _, (chem: Chemical) :: Interaction(_, innerNode, _) :: Nil) =>
+        interaction(innerNode, taxonIndex).map {
+          case (_, innerAffector, innerAxioms) =>
             val (chemInd, chemAxioms) = chem.owl(taxonIndex)
             val axn = (ixnNode \ "axn").head
             val relation = processToProcess((axn \ "@degreecode").head.text)
