@@ -4,6 +4,20 @@ import java.io.File
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geneontology.whelk.{AtomicConcept, Bridge, ConceptAssertion, ConceptInclusion, Reasoner, ReasonerState, Role, RoleAssertion, Individual => WIndividual}
+import scala.collection.JavaConverters._
+import scala.xml.Elem
+import scala.xml.Node
+import scala.xml.XML
+
+import org.geneontology.whelk.AtomicConcept
+import org.geneontology.whelk.Bridge
+import org.geneontology.whelk.ConceptAssertion
+import org.geneontology.whelk.ConceptInclusion
+import org.geneontology.whelk.{Individual => WIndividual}
+import org.geneontology.whelk.Reasoner
+import org.geneontology.whelk.ReasonerState
+import org.geneontology.whelk.Role
+import org.geneontology.whelk.RoleAssertion
 import org.phenoscape.scowl._
 import org.renci.translator.ctd.Model._
 import org.renci.translator.ctd.Model.Gene
@@ -93,8 +107,8 @@ object Main extends App with LazyLogging {
           cotreatmentInd Fact(relation, ixnInd),
           ixnInd Fact(HasInput, geneInd)))
 
-      case Interaction("rxn" :: Nil, _, (chem: Chemical) :: Interaction("exp" :: Nil, expressionNode, (_: Chemical) :: (_: Gene) :: Nil) :: Nil) =>
-        interaction(expressionNode, taxonIndex).map {
+      case Interaction("rxn" :: Nil, _, (chem: Chemical) :: Interaction(_, innerNode, _) :: Nil) =>
+        interaction(innerNode, taxonIndex).map {
           case (_, innerAffector, innerAxioms) =>
             val (chemInd, chemAxioms) = chem.owl(taxonIndex)
             val axn = (ixnNode \ "axn").head
@@ -131,7 +145,7 @@ object Main extends App with LazyLogging {
           chemProcess Fact(relation, ixnInd),
           ixnInd Fact(EnabledBy, geneInd)))
 
-      case Interaction("rxn" :: Nil, _, (gene: Gene) :: Interaction("exp" :: Nil, expressionNode, (_: Chemical) :: (_: Gene) :: Nil) :: Nil) =>
+      case Interaction("rxn" :: Nil, _, (gene: Gene) :: Interaction(_, expressionNode, _) :: Nil) =>
         interaction(expressionNode, taxonIndex).map {
           case (_, innerAffector, innerAxioms) =>
             val (geneInd, geneAxioms) = gene.owl(taxonIndex)
@@ -221,6 +235,7 @@ object Main extends App with LazyLogging {
           ixnInd Fact(HasInput, chemInd)))
 
       case _ => None //FIXME
+
     }
 
     maybeAffectorAndAxioms.map {
