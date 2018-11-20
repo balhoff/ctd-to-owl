@@ -11,7 +11,7 @@ import org.geneontology.whelk.AtomicConcept
 import org.geneontology.whelk.Bridge
 import org.geneontology.whelk.ConceptAssertion
 import org.geneontology.whelk.ConceptInclusion
-import org.geneontology.whelk.{ Individual => WIndividual }
+import org.geneontology.whelk.{Individual => WIndividual}
 import org.geneontology.whelk.Reasoner
 import org.geneontology.whelk.ReasonerState
 import org.geneontology.whelk.Role
@@ -44,15 +44,15 @@ object Main extends App with LazyLogging {
       case (taxonNode, taxonIndex) =>
         interaction(ixn, taxonIndex).map {
           case (ixnInd, affectorInd, ixnAxioms) =>
-            val pubmedLinks = pmids.map(ixnInd Annotation (DCSource, _))
+            val pubmedLinks = pmids.map(ixnInd Annotation(DCSource, _))
             val taxon = Class(s"$OBO/NCBITaxon_${(taxonNode \ "@id").head.text}")
             val label = s"${taxonNode.text}#$id"
             val organismID = s"${ixnInd.getIRI}#organism"
             val organism = Individual(organismID)
             ixnAxioms ++ pubmedLinks ++ Set(
               organism Type taxon,
-              organism Annotation (RDFSLabel, label),
-              ixnInd Fact (OccursIn, organism))
+              organism Annotation(RDFSLabel, label),
+              ixnInd Fact(OccursIn, organism))
         }.toSet.flatten
     }.toSet
     val inferences = Reasoner.assert(axioms.flatMap(Bridge.convertAxiom).collect { case ci: ConceptInclusion => ci }, reasoner)
@@ -78,9 +78,9 @@ object Main extends App with LazyLogging {
         Some(chemProcess, chemAxioms ++ geneAxioms ++ Set(
           ixnInd Type GeneExpression,
           chemProcess Type Process,
-          chemProcess Fact (EnabledBy, chemInd),
-          chemProcess Fact (relation, ixnInd),
-          ixnInd Fact (HasInput, geneInd)))
+          chemProcess Fact(EnabledBy, chemInd),
+          chemProcess Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, geneInd)))
 
       case Interaction("exp" :: Nil, _, (affectingGene: Gene) :: (gene: Gene) :: Nil) =>
         val (affectingGeneInd, affectingGeneAxioms) = affectingGene.owl(taxonIndex)
@@ -91,24 +91,24 @@ object Main extends App with LazyLogging {
         Some(affectingGeneFunction, affectingGeneAxioms ++ geneAxioms ++ Set(
           ixnInd Type GeneExpression,
           affectingGeneFunction Type MolecularFunction,
-          affectingGeneFunction Fact (EnabledBy, affectingGeneInd),
-          affectingGeneFunction Fact (relation, ixnInd),
-          ixnInd Fact (HasInput, geneInd)))
+          affectingGeneFunction Fact(EnabledBy, affectingGeneInd),
+          affectingGeneFunction Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, geneInd)))
 
       case Interaction("exp" :: Nil, _, Interaction("w" :: Nil, cotreatmentNode, chemicals) :: (gene: Gene) :: Nil) if chemicals.forall(_.isInstanceOf[AtomicActor]) =>
         val (inputs, inputsAxioms) = chemicals.collect { case actor: AtomicActor => actor.owl(taxonIndex) }.unzip
         val cotreatmentID = (cotreatmentNode \ "@id").head.text
         val cotreatmentIRI = s"$CTDIXN$cotreatmentID"
         val cotreatmentInd = Individual(cotreatmentIRI)
-        val cotreatmentAxioms = inputs.map(cotreatmentInd Fact (HasInput, _))
+        val cotreatmentAxioms = inputs.map(cotreatmentInd Fact(HasInput, _))
         val (geneInd, geneAxioms) = gene.owl(taxonIndex)
         val axn = (ixnNode \ "axn").head
         val relation = processToProcess((axn \ "@degreecode").head.text)
         Some(cotreatmentInd, inputsAxioms.toSet.flatten ++ geneAxioms ++ cotreatmentAxioms ++ Set(
           ixnInd Type GeneExpression,
           cotreatmentInd Type CoTreatment,
-          cotreatmentInd Fact (relation, ixnInd),
-          ixnInd Fact (HasInput, geneInd)))
+          cotreatmentInd Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, geneInd)))
 
       case Interaction("rxn" :: Nil, _, (chem: Chemical) :: Interaction(_, innerNode, _) :: Nil) =>
         interaction(innerNode, taxonIndex).map {
@@ -118,8 +118,8 @@ object Main extends App with LazyLogging {
             val relation = processToProcess((axn \ "@degreecode").head.text)
             (ixnInd, innerAxioms ++ chemAxioms ++ Set(
               ixnInd Type Process,
-              ixnInd Fact (EnabledBy, chemInd),
-              ixnInd Fact (relation, innerAffector)))
+              ixnInd Fact(EnabledBy, chemInd),
+              ixnInd Fact(relation, innerAffector)))
         }
 
       case Interaction("myl" :: Nil, _, (chem: Chemical) :: (gene: Gene) :: Nil) =>
@@ -131,9 +131,9 @@ object Main extends App with LazyLogging {
         Some(chemProcess, chemAxioms ++ geneAxioms ++ Set(
           ixnInd Type Methylation,
           chemProcess Type Process,
-          chemProcess Fact (EnabledBy, chemInd),
-          chemProcess Fact (relation, ixnInd),
-          ixnInd Fact (HasInput, geneInd)))
+          chemProcess Fact(EnabledBy, chemInd),
+          chemProcess Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, geneInd)))
 
       case Interaction("act" :: Nil, _, (chem: Chemical) :: (gene: Gene) :: Nil) =>
         val (chemInd, chemAxioms) = chem.owl(taxonIndex)
@@ -144,9 +144,9 @@ object Main extends App with LazyLogging {
         Some(chemProcess, chemAxioms ++ geneAxioms ++ Set(
           ixnInd Type MolecularFunction,
           chemProcess Type Process,
-          chemProcess Fact (EnabledBy, chemInd),
-          chemProcess Fact (relation, ixnInd),
-          ixnInd Fact (EnabledBy, geneInd)))
+          chemProcess Fact(EnabledBy, chemInd),
+          chemProcess Fact(relation, ixnInd),
+          ixnInd Fact(EnabledBy, geneInd)))
 
       case Interaction("rxn" :: Nil, _, (gene: Gene) :: Interaction(_, expressionNode, _) :: Nil) =>
         interaction(expressionNode, taxonIndex).map {
@@ -156,8 +156,8 @@ object Main extends App with LazyLogging {
             val relation = processToProcess((axn \ "@degreecode").head.text)
             (ixnInd, innerAxioms ++ geneAxioms ++ Set(
               ixnInd Type MolecularFunction,
-              ixnInd Fact (EnabledBy, geneInd),
-              ixnInd Fact (relation, innerAffector)))
+              ixnInd Fact(EnabledBy, geneInd),
+              ixnInd Fact(relation, innerAffector)))
         }
 
       case Interaction("rec" :: Nil, _, (gene: Gene) :: (chem: Chemical) :: Nil) =>
@@ -169,9 +169,9 @@ object Main extends App with LazyLogging {
         Some(geneFunction, chemAxioms ++ geneAxioms ++ Set(
           ixnInd Type ResponseToChemical,
           geneFunction Type MolecularFunction,
-          geneFunction Fact (EnabledBy, geneInd),
-          geneFunction Fact (relation, ixnInd),
-          ixnInd Fact (HasInput, chemInd)))
+          geneFunction Fact(EnabledBy, geneInd),
+          geneFunction Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, chemInd)))
 
       case Interaction("pho" :: Nil, _, (chem: Chemical) :: (gene: Gene) :: Nil) =>
         val (chemInd, chemAxioms) = chem.owl(taxonIndex)
@@ -182,17 +182,17 @@ object Main extends App with LazyLogging {
         Some(chemProcess, chemAxioms ++ geneAxioms ++ Set(
           ixnInd Type Phosphorylation,
           chemProcess Type Process,
-          chemProcess Fact (EnabledBy, chemInd),
-          chemProcess Fact (relation, ixnInd),
-          ixnInd Fact (HasInput, geneInd)))
+          chemProcess Fact(EnabledBy, chemInd),
+          chemProcess Fact(relation, ixnInd),
+          ixnInd Fact(HasInput, geneInd)))
 
       case Interaction("b" :: Nil, _, (chem: Chemical) :: (gene: Gene) :: Nil) =>
         val (chemInd, chemAxioms) = chem.owl(taxonIndex)
         val (geneInd, geneAxioms) = gene.owl(taxonIndex)
         Some(ixnInd, chemAxioms ++ geneAxioms ++ Set(
           ixnInd Type Binding,
-          ixnInd Fact (EnabledBy, chemInd), //FIXME GO molecular functions (binding) shouldn't be enabled by chemicals
-          ixnInd Fact (HasInput, geneInd)))
+          ixnInd Fact(EnabledBy, chemInd), //FIXME GO molecular functions (binding) shouldn't be enabled by chemicals
+          ixnInd Fact(HasInput, geneInd)))
 
       case Interaction("rxn" :: Nil, _, (chem: Chemical) :: Interaction("exp" :: Nil, expressionNode, (affectingGene: Gene) :: (expressedGene: Gene) :: Nil) :: Nil) =>
         interaction(expressionNode, taxonIndex).map {
@@ -202,10 +202,10 @@ object Main extends App with LazyLogging {
             val relation = processToProcess((axn \ "@degreecode").head.text)
             (ixnInd, innerAxioms ++ chemAxioms ++ Set(
               ixnInd Type Process,
-              ixnInd Fact (EnabledBy, chemInd),
-              ixnInd Fact (relation, innerAffector)))
+              ixnInd Fact(EnabledBy, chemInd),
+              ixnInd Fact(relation, innerAffector)))
         }
-      case _ => None //FIXME
+      case _                                                                                                                                                         => None //FIXME
     }
 
     maybeAffectorAndAxioms.map {
@@ -236,9 +236,9 @@ object Main extends App with LazyLogging {
   for {
     (chunk, index) <- chunks
   } {
-    val axioms = (chunk.flatMap {
+    val axioms = chunk.flatMap {
       case elem: Elem => process(elem, reasoner)
-    }).toSet
+    }.toSet
     val manager = OWLManager.createOWLOntologyManager()
     val ontology = manager.createOntology(axioms.asJava)
     manager.saveOntology(ontology, new TurtleDocumentFormat(), new FileDocumentTarget(new File(s"ctdcams/ctd-cam-$index.ttl")))
