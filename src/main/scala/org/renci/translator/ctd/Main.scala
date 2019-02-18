@@ -4,23 +4,8 @@ import java.io.File
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geneontology.whelk.{AtomicConcept, Bridge, ConceptAssertion, ConceptInclusion, Reasoner, ReasonerState, Role, RoleAssertion, Individual => WIndividual}
-import scala.collection.JavaConverters._
-import scala.xml.Elem
-import scala.xml.Node
-import scala.xml.XML
-
-import org.geneontology.whelk.AtomicConcept
-import org.geneontology.whelk.Bridge
-import org.geneontology.whelk.ConceptAssertion
-import org.geneontology.whelk.ConceptInclusion
-import org.geneontology.whelk.{Individual => WIndividual}
-import org.geneontology.whelk.Reasoner
-import org.geneontology.whelk.ReasonerState
-import org.geneontology.whelk.Role
-import org.geneontology.whelk.RoleAssertion
 import org.phenoscape.scowl._
-import org.renci.translator.ctd.Model._
-import org.renci.translator.ctd.Model.Gene
+import org.renci.translator.ctd.Model.{Gene, _}
 import org.renci.translator.ctd.Vocab._
 import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat
