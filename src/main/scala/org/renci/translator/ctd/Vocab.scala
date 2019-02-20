@@ -27,6 +27,7 @@ object Vocab {
   val CausallyUpstreamOfNegativeEffect = ObjectProperty(s"$OBO/RO_0002305") // process to process
   val OccursIn = ObjectProperty(s"$OBO/BFO_0000066")
   val HasInput = ObjectProperty(s"$OBO/RO_0002233")
+  val HasParticipant = ObjectProperty(s"$OBO/RO_0000057")
   val InputOf = ObjectProperty(s"$OBO/RO_0002352")
   val Enables = ObjectProperty(s"$OBO/RO_0002327")
   val EnabledBy = ObjectProperty(s"$OBO/RO_0002333")
