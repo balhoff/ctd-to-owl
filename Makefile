@@ -5,7 +5,6 @@ ctd.jnl: ctdcams
 	blazegraph-runner load --informat=turtle --journal=ctd.jnl --graph='http://ctdbase.org/' ctdcams &&\
 	blazegraph-runner load --informat=turtle --journal=ctd.jnl --graph='http://ctdbase.org/vocab/' vocab
 
-
 geneToChem.tsv: geneToChem.rq ctd.jnl
 	blazegraph-runner select --journal=ctd.jnl --outformat=tsv geneToChem.rq geneToChem.tsv
 
