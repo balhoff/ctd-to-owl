@@ -9,6 +9,7 @@ PREFIX causally_upstream_of: <http://purl.obolibrary.org/obo/RO_0002411>
 PREFIX causally_upstream_pos: <http://purl.obolibrary.org/obo/RO_0002304>
 PREFIX causally_upstream_neg: <http://purl.obolibrary.org/obo/RO_0002305>
 PREFIX participates_in: <http://purl.obolibrary.org/obo/RO_0000056>
+PREFIX has_participant: <http://purl.obolibrary.org/obo/RO_0000057>
 PREFIX has_part: <http://purl.obolibrary.org/obo/BFO_0000051>
 PREFIX Gene: <http://purl.obolibrary.org/obo/SO_0000704>
 PREFIX Chemical: <http://purl.obolibrary.org/obo/CHEBI_24431>
@@ -55,7 +56,7 @@ WHERE {
   ?gene participates_in: ?gene_process .
   ?gene_process ?rel ?process .
   FILTER (?rel IN (causally_upstream_of:, causally_upstream_pos:, causally_upstream_neg:))
-  ?process has_input:|enabled_by: ?chem .
+  ?process has_participant: ?chem .
   ?process rdf:type ?process_type .
   ?x has_part:?/causally_upstream_of:? ?process .
   ?x occurs_in: / rdf:type ?taxon .
