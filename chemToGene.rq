@@ -11,6 +11,7 @@ PREFIX causally_upstream_of: <http://purl.obolibrary.org/obo/RO_0002411>
 PREFIX causally_upstream_pos: <http://purl.obolibrary.org/obo/RO_0002304>
 PREFIX causally_upstream_neg: <http://purl.obolibrary.org/obo/RO_0002305>
 PREFIX participates_in: <http://purl.obolibrary.org/obo/RO_0000056>
+PREFIX has_part: <http://purl.obolibrary.org/obo/BFO_0000051>
 PREFIX has_input: <http://purl.obolibrary.org/obo/RO_0002233>
 PREFIX enabled_by: <http://purl.obolibrary.org/obo/RO_0002333>
 PREFIX GeneExpression: <http://purl.obolibrary.org/obo/GO_0010467>
@@ -57,7 +58,7 @@ WHERE {
   ?process has_input:|enabled_by: ?gene .
   ?process rdf:type ?process_type .
   # TODO get this from reasoning?
-  ?x causally_upstream_of:? ?process .
+  ?x has_part:?/causally_upstream_of:? ?process .
   ?x occurs_in: / rdf:type ?taxon .
   ?x dc:source ?pmid .
   ?gene_type rdfs:label ?gene_type_label .
