@@ -106,7 +106,9 @@ object Main extends App with LazyLogging {
             val localIxnInd = Individual(localIxnID)
             List(localIxnInd Type ixnType,
               localIxnInd Fact(HasParticipant, targetInd),
-              subjectProcess Fact(relation, localIxnInd))
+              subjectProcess Fact(relation, localIxnInd),
+              localIxnInd Fact(PartOf, ixnInd)
+            )
           }.toSet
           (ixnInd, axioms ++ subjectAxioms ++ targetAxioms)
         }
