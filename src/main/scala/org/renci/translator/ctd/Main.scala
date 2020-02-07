@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.formats.TurtleDocumentFormat
 import org.semanticweb.owlapi.io.FileDocumentTarget
 import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLNamedIndividual}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.xml.{Elem, Node, XML}
 
 object Main extends App {
