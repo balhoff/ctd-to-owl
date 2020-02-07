@@ -1,15 +1,18 @@
 package org.renci.translator.ctd
 
-import java.io.File
+import java.io.{File, FileInputStream}
+import java.util.Properties
 
-import org.geneontology.whelk.{AtomicConcept, Bridge, BuiltIn, ConceptAssertion, ConceptInclusion, Reasoner, ReasonerState, Role, RoleAssertion, Individual => WIndividual}
+import com.bigdata.journal.Options
+import com.bigdata.rdf.sail.{BigdataSail, BigdataSailRepository}
+import org.openrdf.model.impl.URIImpl
+import org.openrdf.rio.helpers.StatementCollector
 import org.phenoscape.scowl._
 import org.renci.translator.ctd.Model.{Gene, _}
 import org.renci.translator.ctd.Vocab._
 import org.semanticweb.owlapi.apibinding.OWLManager
-import org.semanticweb.owlapi.formats.TurtleDocumentFormat
-import org.semanticweb.owlapi.io.FileDocumentTarget
-import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLNamedIndividual}
+import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLNamedIndividual, OWLOntology}
+import org.semanticweb.owlapi.rio.RioRenderer
 
 import scala.jdk.CollectionConverters._
 import scala.xml.{Elem, Node, XML}
@@ -18,8 +21,9 @@ object Main extends App {
 
   //TODO handle multiple actions
 
-  def process(ixn: Elem, reasoner: ReasonerState): Set[OWLAxiom] = {
+  def process(ixn: Elem): OWLOntology = {
     val id = (ixn \ "@id").head.text
+    val graphIRI = IRI.create(s"$CTDIXN$id")
     val pmids = (ixn \ "reference").flatMap(_ \ "@pmid").map(_.text).map(p => IRI.create(s"$PMID/$p"))
     val axioms = (ixn \ "taxon").zipWithIndex.flatMap {
       case (taxonNode, taxonIndex) =>
@@ -36,15 +40,8 @@ object Main extends App {
               ixnInd Fact(OccursIn, organism))
         }.toSet.flatten
     }.toSet
-    val inferences = Reasoner.assert(axioms.flatMap(Bridge.convertAxiom).collect { case ci: ConceptInclusion => ci }, reasoner)
-    if (inferences.classAssertions.exists(_.concept == BuiltIn.Bottom)) {
-      println(ixn)
-      axioms.foreach(println)
-      System.exit(1)
-    }
-    val inferredAxioms = inferences.classAssertions.map { case ConceptAssertion(AtomicConcept(classIRI), WIndividual(indIRI)) => ClassAssertion(Class(classIRI), Individual(indIRI)) } ++
-      inferences.roleAssertions.map { case RoleAssertion(Role(roleIRI), WIndividual(subjectIRI), WIndividual(targetIRI)) => ObjectPropertyAssertion(ObjectProperty(roleIRI), Individual(subjectIRI), Individual(targetIRI)) }
-    axioms ++ inferredAxioms
+    val manager = OWLManager.createOWLOntologyManager()
+    manager.createOntology(axioms.asJava, graphIRI)
   }
 
   def interaction(ixnNode: Node, taxonIndex: Int): Option[(OWLNamedIndividual, OWLNamedIndividual, Set[OWLAxiom])] = {
@@ -146,22 +143,33 @@ object Main extends App {
     case "gene"     => Gene(node)
   }
 
-  val root = XML.loadFile("CTD_chem_gene_ixns_structured.xml")
-  //val root = XML.loadFile("testowl.xml")
-  val ro = OWLManager.createOWLOntologyManager().loadOntology(IRI.create("http://purl.obolibrary.org/obo/ro.owl"))
-  val reasoner = Reasoner.assert(Bridge.ontologyToAxioms(ro))
-  val ixns = root \ "ixn"
-  val chunks = ixns.grouped(10000).zipWithIndex
+  //val root = XML.loadFile("CTD_chem_gene_ixns_structured.xml")
+  val root = XML.loadFile(args(0))
+  val journalFile = new File(args(1))
+  val inputProperties = new File(args(2))
+  val blazegraphProperties = new Properties()
+  val propertiesStream = new FileInputStream(inputProperties)
+  blazegraphProperties.load(propertiesStream)
+  propertiesStream.close()
+  blazegraphProperties.setProperty(Options.FILE, journalFile.getAbsolutePath)
+  val sail = new BigdataSail(blazegraphProperties)
+  val repository = new BigdataSailRepository(sail)
+  repository.initialize()
+  val blazegraph = repository.getUnisolatedConnection()
 
-  for {
-    (chunk, index) <- chunks
-  } {
-    val axioms = chunk.flatMap {
-      case elem: Elem => process(elem, reasoner)
-    }.toSet
-    val manager = OWLManager.createOWLOntologyManager()
-    val ontology = manager.createOntology(axioms.asJava)
-    manager.saveOntology(ontology, new TurtleDocumentFormat(), new FileDocumentTarget(new File(s"ctdcams/ctd-cam-$index.ttl")))
+  val ixns = root \ "ixn"
+  ixns.foreach { case ixn: Elem =>
+    val ont = process(ixn)
+    blazegraph.begin()
+    val graph = new URIImpl(ont.getOntologyID.getOntologyIRI.get().toString)
+    val collector = new StatementCollector()
+    val renderer = new RioRenderer(ont, collector, null);
+    renderer.render()
+    blazegraph.add(collector.getStatements, graph)
+    blazegraph.commit()
   }
+
+  blazegraph.close()
+  repository.shutDown()
 
 }

@@ -29,7 +29,7 @@ libraryDependencies ++= {
     "net.sourceforge.owlapi"      %  "owlapi-distribution"    % "4.5.15",
     "org.phenoscape"              %% "scowl"                  % "1.3.4",
     "com.outr"                    %% "scribe-slf4j"           % "2.7.10",
-    "org.geneontology"            %% "whelk"                  % "0.4",
+    "com.blazegraph"              %  "bigdata-core"           % "2.1.4" exclude("org.slf4j", "slf4j-log4j12"),
     "com.lihaoyi"                 %% "utest"                  % "0.7.4" % Test
   )
 }
