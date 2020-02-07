@@ -2,7 +2,6 @@ package org.renci.translator.ctd
 
 import java.io.File
 
-import com.typesafe.scalalogging.LazyLogging
 import org.geneontology.whelk.{AtomicConcept, Bridge, BuiltIn, ConceptAssertion, ConceptInclusion, Reasoner, ReasonerState, Role, RoleAssertion, Individual => WIndividual}
 import org.phenoscape.scowl._
 import org.renci.translator.ctd.Model.{Gene, _}
@@ -15,7 +14,7 @@ import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLNamedIndividual}
 import scala.collection.JavaConverters._
 import scala.xml.{Elem, Node, XML}
 
-object Main extends App with LazyLogging {
+object Main extends App {
 
   //TODO handle multiple actions
 
@@ -123,7 +122,7 @@ object Main extends App with LazyLogging {
         }
 
       case _ => {
-        logger.warn(s"Not handling:\n$ixnNode")
+        scribe.warn(s"Not handling:\n$ixnNode")
         None
       } //FIXME
 

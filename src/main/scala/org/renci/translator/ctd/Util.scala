@@ -1,7 +1,6 @@
 package org.renci.translator.ctd
 
-import scala.xml.Elem
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 
 object Util {
 

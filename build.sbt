@@ -8,7 +8,7 @@ version       := "0.1"
 
 licenses := Seq("BSD-3-Clause" -> url("https://opensource.org/licenses/BSD-3-Clause"))
 
-scalaVersion  := "2.12.6"
+scalaVersion  := "2.12.10"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
@@ -24,14 +24,12 @@ fork in Test := true
 
 libraryDependencies ++= {
   Seq(
-    "org.scala-lang.modules"      %% "scala-xml"              % "1.1.0",
-    "org.scalaz"                  %% "scalaz-core"            % "7.2.24",
-    "net.sourceforge.owlapi"      %  "owlapi-distribution"    % "4.5.2",
-    "org.phenoscape"              %% "scowl"                  % "1.3.1",
-    "com.typesafe.scala-logging"  %% "scala-logging"          % "3.9.0",
-    "ch.qos.logback"              %  "logback-classic"        % "1.2.3",
-    "org.codehaus.groovy"         %  "groovy-all"             % "2.4.6",
-    "org.geneontology"            %% "whelk"                  % "0.1.3",
-    "com.lihaoyi"                 %% "utest"                  % "0.6.3" % Test
+    "org.scala-lang.modules"      %% "scala-xml"              % "1.2.0",
+    "org.scalaz"                  %% "scalaz-core"            % "7.2.30",
+    "net.sourceforge.owlapi"      %  "owlapi-distribution"    % "4.5.15",
+    "org.phenoscape"              %% "scowl"                  % "1.3.4",
+    "com.outr"                    %% "scribe-slf4j"           % "2.7.10",
+    "org.geneontology"            %% "whelk"                  % "0.4",
+    "com.lihaoyi"                 %% "utest"                  % "0.7.4" % Test
   )
 }
