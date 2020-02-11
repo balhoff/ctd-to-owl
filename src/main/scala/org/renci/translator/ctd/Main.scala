@@ -143,7 +143,6 @@ object Main extends App {
     case "gene"     => Gene(node)
   }
 
-  //val root = XML.loadFile("CTD_chem_gene_ixns_structured.xml")
   val root = XML.loadFile(args(0))
   val journalFile = new File(args(1))
   val inputProperties = new File(args(2))
@@ -156,19 +155,18 @@ object Main extends App {
   val repository = new BigdataSailRepository(sail)
   repository.initialize()
   val blazegraph = repository.getUnisolatedConnection()
-
   val ixns = root \ "ixn"
+  blazegraph.begin()
   ixns.foreach { case ixn: Elem =>
     val ont = process(ixn)
-    blazegraph.begin()
+
     val graph = new URIImpl(ont.getOntologyID.getOntologyIRI.get().toString)
     val collector = new StatementCollector()
-    val renderer = new RioRenderer(ont, collector, null);
+    val renderer = new RioRenderer(ont, collector, null)
     renderer.render()
     blazegraph.add(collector.getStatements, graph)
-    blazegraph.commit()
   }
-
+  blazegraph.commit()
   blazegraph.close()
   repository.shutDown()
 
