@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLNamedIndividual, OWLOntology}
 import org.semanticweb.owlapi.rio.RioRenderer
 
+import scala.io.Source
 import scala.jdk.CollectionConverters._
 import scala.xml.{Elem, Node, XML}
 
@@ -21,13 +22,13 @@ object Main extends App {
 
   //TODO handle multiple actions
 
-  def process(ixn: Elem): OWLOntology = {
+  def process(ixn: Elem, meshToCHEBI: Map[String, String]): OWLOntology = {
     val id = (ixn \ "@id").head.text
     val graphIRI = IRI.create(s"$CTDIXN$id")
     val pmids = (ixn \ "reference").flatMap(_ \ "@pmid").map(_.text).map(p => IRI.create(s"$PMID/$p"))
     val axioms = (ixn \ "taxon").zipWithIndex.flatMap {
       case (taxonNode, taxonIndex) =>
-        interaction(ixn, taxonIndex).map {
+        interaction(ixn, taxonIndex, meshToCHEBI).map {
           case (ixnInd, _, ixnAxioms) =>
             val pubmedLinks = pmids.map(ixnInd Annotation(DCSource, _))
             val taxon = Class(s"$OBO/NCBITaxon_${(taxonNode \ "@id").head.text}")
@@ -44,7 +45,7 @@ object Main extends App {
     manager.createOntology(axioms.asJava, graphIRI)
   }
 
-  def interaction(ixnNode: Node, taxonIndex: Int): Option[(OWLNamedIndividual, OWLNamedIndividual, Set[OWLAxiom])] = {
+  def interaction(ixnNode: Node, taxonIndex: Int, meshToCHEBI: Map[String, String]): Option[(OWLNamedIndividual, OWLNamedIndividual, Set[OWLAxiom])] = {
 
     val id = (ixnNode \ "@id").head.text
     val ixnID = s"$CTDIXN$id#$taxonIndex"
@@ -56,14 +57,14 @@ object Main extends App {
 
       case Interaction("w" :: Nil, _, actors) if actors.forall(_.isInstanceOf[AtomicActor]) =>
         val (inputs, inputsAxioms) = actors.collect {
-          case actor: AtomicActor => actor.owl(taxonIndex)
+          case actor: AtomicActor => actor.owl(taxonIndex, meshToCHEBI)
         }.unzip
         val cotreatmentAxioms = inputs.map(ixnInd Fact(HasInput, _))
         Some(ixnInd, inputsAxioms.toSet.flatten ++ cotreatmentAxioms ++ Set(ixnInd Type CoTreatment))
 
       case Interaction("b" :: Nil, _, actors) if actors.forall(_.isInstanceOf[AtomicActor]) =>
         val (inputs, inputsAxioms) = actors.collect {
-          case actor: AtomicActor => actor.owl(taxonIndex)
+          case actor: AtomicActor => actor.owl(taxonIndex, meshToCHEBI)
         }.unzip
         val bindingAxioms = inputs.map(ixnInd Fact(HasInput, _))
         Some(ixnInd, inputsAxioms.toSet.flatten ++ bindingAxioms ++ Set(ixnInd Type Binding))
@@ -71,15 +72,15 @@ object Main extends App {
       case Interaction("rxn" :: Nil, _, subject :: Interaction(_, innerNode, _) :: Nil) =>
         val subjectStuff = subject match {
           case atomic: AtomicActor =>
-            val (subjInd, subjAxioms) = atomic.owl(taxonIndex)
+            val (subjInd, subjAxioms) = atomic.owl(taxonIndex, meshToCHEBI)
             val subjProcess = Individual(s"${subjInd.getIRI.toString}-process")
             Some((subjProcess, subjAxioms ++ Set(subjProcess Type Process,
               subjProcess Fact(HasParticipant, subjInd))))
-          case ixn: Interaction    => interaction(ixn.node, taxonIndex).map(res => (res._1, res._3))
+          case ixn: Interaction    => interaction(ixn.node, taxonIndex, meshToCHEBI).map(res => (res._1, res._3))
         }
         for {
           (subjectProcess, subjectAxioms) <- subjectStuff
-          (_, innerAffector, innerAxioms) <- interaction(innerNode, taxonIndex)
+          (_, innerAffector, innerAxioms) <- interaction(innerNode, taxonIndex, meshToCHEBI)
         } yield {
           val axn = (ixnNode \ "axn").head
           val relation = processToProcess((axn \ "@degreecode").head.text)
@@ -93,18 +94,18 @@ object Main extends App {
         if itypes.forall(Set("act", "pho", "exp", "myl", "sec", "loc", "clv", "mut", "deg", "spl", "rec", "sta", "met", "oxd", "ubq", "nit", "upt", "red", "alk", "sum", "gyc", "trt", "glc", "csy", "upt", "red", "hdx")) =>
         val subjectStuff = subject match {
           case atomic: AtomicActor =>
-            val (subjInd, subjAxioms) = atomic.owl(taxonIndex)
+            val (subjInd, subjAxioms) = atomic.owl(taxonIndex, meshToCHEBI)
             val subjProcess = Individual(s"${subjInd.getIRI.toString}-process")
             Some((subjProcess, subjAxioms ++ Set(subjProcess Type Process,
               subjProcess Fact(HasParticipant, subjInd))))
-          case ixn: Interaction    => interaction(ixn.node, taxonIndex).map(res => (res._1, res._3))
+          case ixn: Interaction    => interaction(ixn.node, taxonIndex, meshToCHEBI).map(res => (res._1, res._3))
         }
         for {
           (subjectProcess, subjectAxioms) <- subjectStuff
         } yield {
           val axn = (ixnNode \ "axn").head
           val relation = processToProcess((axn \ "@degreecode").head.text)
-          val (targetInd, targetAxioms) = target.owl(taxonIndex)
+          val (targetInd, targetAxioms) = target.owl(taxonIndex, meshToCHEBI)
           val axioms = itypes.zipWithIndex.flatMap { case (itype, index) =>
             val ixnType = IxnTypes(itype)
             val localIxnID = s"$CTDIXN$id#$taxonIndex-target-$index"
@@ -146,6 +147,11 @@ object Main extends App {
   val root = XML.loadFile(args(0))
   val journalFile = new File(args(1))
   val inputProperties = new File(args(2))
+  val chebiMESH = new File(args(3))
+  val meshToCHEBI = Source.fromFile(chebiMESH).getLines().map { line =>
+    val columns = line.split("\t", -1)
+    columns(1) -> columns(0)
+  }.toMap
   val blazegraphProperties = new Properties()
   val propertiesStream = new FileInputStream(inputProperties)
   blazegraphProperties.load(propertiesStream)
@@ -158,8 +164,7 @@ object Main extends App {
   val ixns = root \ "ixn"
   blazegraph.begin()
   ixns.foreach { case ixn: Elem =>
-    val ont = process(ixn)
-
+    val ont = process(ixn, meshToCHEBI)
     val graph = new URIImpl(ont.getOntologyID.getOntologyIRI.get().toString)
     val collector = new StatementCollector()
     val renderer = new RioRenderer(ont, collector, null)
