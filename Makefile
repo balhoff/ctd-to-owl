@@ -15,4 +15,13 @@ ctd.tsv: chemToGene.tsv geneToChem.tsv
 	cp chemToGene.tsv ctd.tsv && cat geneToChem.tsv >>ctd.tsv
 
 ctd-grouped.tsv: ctd.tsv
-	datamash --sort groupby 1,2,3,4,5,6,7,8 unique 9 <ctd.tsv >ctd-grouped.tsv
+	datamash --sort groupby 1,2,3,4,5,6,7,8 unique 9 <$< >$@
+
+ctd-grouped-clean.tsv: ctd-grouped.tsv
+	sed 's/^M//g' $< >$@ #FIXME
+
+ctd-grouped-pipes.tsv: ctd-grouped-clean.tsv
+	awk -F '\t' 'BEGIN{OFS="\t";} {gsub(/,/,"|",$9); print }' $< >$@
+
+ctd-grouped-pipes.csv: ctd-grouped-pipes.tsv
+	

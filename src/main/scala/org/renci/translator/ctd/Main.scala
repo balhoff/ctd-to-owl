@@ -11,7 +11,7 @@ import org.phenoscape.scowl._
 import org.renci.translator.ctd.Model.{Gene, _}
 import org.renci.translator.ctd.Vocab._
 import org.semanticweb.owlapi.apibinding.OWLManager
-import org.semanticweb.owlapi.model.{IRI, OWLAxiom, OWLNamedIndividual, OWLOntology}
+import org.semanticweb.owlapi.model._
 import org.semanticweb.owlapi.rio.RioRenderer
 
 import scala.io.Source
@@ -42,7 +42,9 @@ object Main extends App {
         }.toSet.flatten
     }.toSet
     val manager = OWLManager.createOWLOntologyManager()
-    manager.createOntology(axioms.asJava, graphIRI)
+    val ont = manager.createOntology(axioms.asJava, graphIRI)
+    manager.applyChange(new AddOntologyAnnotation(ont, Annotation(ProvidedBy, IRI.create("http://ctdbase.org"))))
+    ont
   }
 
   def interaction(ixnNode: Node, taxonIndex: Int, meshToCHEBI: Map[String, String]): Option[(OWLNamedIndividual, OWLNamedIndividual, Set[OWLAxiom])] = {
