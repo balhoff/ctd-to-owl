@@ -18,8 +18,8 @@ object Model {
 
     def nodeType: OWLClass
 
-    def owl(taxonIndex: Int): (OWLNamedIndividual, Set[OWLAxiom]) = {
-      val actorClass = actorType((node \ "@id").head.text, (node \ "@type").head.text)
+    def owl(taxonIndex: Int, meshToCHEBI: Map[String, String]): (OWLNamedIndividual, Set[OWLAxiom]) = {
+      val actorClass = actorType((node \ "@id").head.text, (node \ "@type").head.text, meshToCHEBI)
       val position = (node \ "@position").head.text
       val parentID = (node \ "@parentid").head.text
       val ixnID = s"$CTDIXN$parentID#$taxonIndex"
@@ -49,8 +49,13 @@ object Model {
 
   }
 
-  def actorType(id: String, tpe: String): OWLClass = tpe match {
-    case "chemical" => Class(id.replaceAllLiterally("MESH:", s"$MESH/"))
+  def actorType(id: String, tpe: String, meshToCHEBI: Map[String, String]): OWLClass = tpe match {
+    case "chemical" =>
+      val iri = meshToCHEBI.get(id).map(_.replaceAllLiterally("CHEBI:", s"$CHEBI")).getOrElse {
+        scribe.warn(s"No mapping for MESH: $id")
+        id.replaceAllLiterally("MESH:", s"$MESH/")
+      }
+      Class(iri)
     case "gene"     => Class(id.replaceAllLiterally("GENE", NCBIGENE))
   }
 

@@ -11,10 +11,12 @@ object Vocab {
   val TopProperty = factory.getOWLTopObjectProperty
   val HasForm = AnnotationProperty("http://ctd.example.org/has_form")
   val DCSource = AnnotationProperty(DublinCoreVocabulary.SOURCE.getIRI)
+  val ProvidedBy = AnnotationProperty("http://purl.org/pav/providedBy")
 
   val OBO = "http://purl.obolibrary.org/obo"
   val CTDIXN = "http://ctdbase.org/detail.go?type=relationship&ixnId="
   val MESH = "http://id.nlm.nih.gov/mesh"
+  val CHEBI = s"$OBO/CHEBI_"
   val NCBIGENE = "http://identifiers.org/ncbigene"
   val PMID = "https://www.ncbi.nlm.nih.gov/pubmed"
   val ChemicalEntity = Class(s"$OBO/CHEBI_24431")
