@@ -4,7 +4,7 @@ organization  := "org.renci.translator"
 
 name          := "ctd-to-owl"
 
-version       := "0.2"
+version       := "0.2.1"
 
 licenses := Seq("BSD-3-Clause" -> url("https://opensource.org/licenses/BSD-3-Clause"))
 
