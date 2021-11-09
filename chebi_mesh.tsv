@@ -13590,7 +13590,6 @@ CHEBI:27764	MESH:C032778
 CHEBI:19032	MESH:C039590
 CHEBI:31317	MESH:D002019
 CHEBI:53088	MESH:C070804
-{"id": {"identifier": "CHEBI:75446"}, "equivalent_identifiers": [{"identifier": "CHEBI:75446"}, {"identifier": "PUBCHEM:53478086"}, {"identifier": "HMDB:HMDB0007211"}, {"identifier": "INCHIKEY:HMLMESHNDWTNJR-ASUORMEESA-N"}], "type": ["chemical_substance", "molecular_entity", "biological_entity", "named_thing"]}
 CHEBI:70526	MESH:C554323
 CHEBI:34480	MESH:C007649
 CHEBI:69086	MESH:C000602096

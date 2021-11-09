@@ -18,21 +18,22 @@ object Model {
 
     def nodeType: OWLClass
 
-    def owl(taxonIndex: Int, meshToCHEBI: Map[String, String]): (OWLNamedIndividual, Set[OWLAxiom]) = {
+    def owl(taxonIndex: Int, meshToCHEBI: Map[String, String], includeLabels: Boolean): (OWLNamedIndividual, Set[OWLAxiom]) = {
       val actorClass = actorType((node \ "@id").head.text, (node \ "@type").head.text, meshToCHEBI)
       val position = (node \ "@position").head.text
       val parentID = (node \ "@parentid").head.text
       val ixnID = s"$CTDIXN$parentID#$taxonIndex"
       val actorInd = Individual(s"$ixnID-$position")
-      val typeLabel = node.text
-      val label = s"$typeLabel#$parentID-$position"
+      val labelAxioms = if (includeLabels) {
+        val typeLabel = node.text
+        val label = s"$typeLabel#$parentID-$position"
+        Set(actorClass Annotation(RDFSLabel, typeLabel), actorInd Annotation(RDFSLabel, label))
+      } else Set.empty
       val formAnnotations = (node \ "@form").map(_.text).map(form => actorInd Annotation(HasForm, form))
       (actorInd, Set(
         actorInd Type actorClass,
-        actorClass Annotation(RDFSLabel, typeLabel),
-        actorInd Type nodeType,
-        actorInd Annotation(RDFSLabel, label)
-      ) ++ formAnnotations)
+        actorInd Type nodeType
+      ) ++ labelAxioms ++ formAnnotations)
     }
 
   }
@@ -53,10 +54,10 @@ object Model {
     case "chemical" =>
       val iri = meshToCHEBI.get(id).map(_.replaceAllLiterally("CHEBI:", s"$CHEBI")).getOrElse {
         scribe.warn(s"No mapping for MESH: $id")
-        id.replaceAllLiterally("MESH:", s"$MESH/")
+        id.replaceAllLiterally("MESH:", s"$MESH")
       }
       Class(iri)
-    case "gene"     => Class(id.replaceAllLiterally("GENE", NCBIGENE))
+    case "gene"     => Class(id.replaceAllLiterally("GENE:", NCBIGENE))
   }
 
 }
