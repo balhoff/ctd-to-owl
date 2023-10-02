@@ -1,10 +1,7 @@
 package org.renci.translator.ctd
 
-import org.openrdf.model.ModelFactory
-
-import java.io.{File, FileInputStream}
-import java.util.Properties
-import org.openrdf.model.impl.{ContextStatementImpl, LinkedHashModelFactory, StatementImpl, URIImpl}
+import org.openrdf.model.impl.{ContextStatementImpl, LinkedHashModelFactory, URIImpl}
+import org.openrdf.rio.{RDFFormat, Rio}
 import org.openrdf.rio.helpers.StatementCollector
 import org.phenoscape.scowl._
 import org.renci.translator.ctd.Model.{Gene, _}
@@ -13,15 +10,10 @@ import org.semanticweb.owlapi.apibinding.OWLManager
 import org.semanticweb.owlapi.model._
 import org.semanticweb.owlapi.rio.RioRenderer
 
+import java.io.{File, FileOutputStream}
 import scala.io.Source
 import scala.jdk.CollectionConverters._
 import scala.xml.{Elem, Node, XML}
-import org.openrdf.rio.RDFFormat
-import org.openrdf.rio.RDFWriter
-import org.openrdf.rio.Rio
-
-import java.io.FileOutputStream
-import java.util.zip.GZIPOutputStream
 
 object Main extends App {
 
@@ -37,7 +29,7 @@ object Main extends App {
           case (ixnInd, _, ixnAxioms) =>
             val pubmedLinks = pmids.map(ixnInd Annotation(DCSource, _))
             val taxon = Class(s"$OBO/NCBITaxon_${(taxonNode \ "@id").head.text}")
-            val organismID = s"${ixnInd.getIRI}#organism"
+            val organismID = s"${ixnInd.getIRI}-organism"
             val organism = Individual(organismID)
             val labelAxioms = if (includeLabels) {
               val label = s"${taxonNode.text}#$id"
