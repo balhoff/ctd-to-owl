@@ -8,7 +8,6 @@ import org.semanticweb.owlapi.vocab.DublinCoreVocabulary
 object Vocab {
 
   private val factory = OWLManager.getOWLDataFactory
-  val TopProperty = factory.getOWLTopObjectProperty
   val HasForm = AnnotationProperty("http://ctd.example.org/has_form")
   val DCSource = AnnotationProperty(DublinCoreVocabulary.SOURCE.getIRI)
   val ProvidedBy = AnnotationProperty("http://purl.org/pav/providedBy")
@@ -21,12 +20,16 @@ object Vocab {
   val PMID = "https://www.ncbi.nlm.nih.gov/pubmed"
   val ChemicalEntity = Class(s"$OBO/CHEBI_24431")
   val Gene = Class(s"$OBO/SO_0000704")
+  val CausallyRelatedTo = ObjectProperty(s"$OBO/RO:0002410")
   val ActsUpstreamOf = ObjectProperty(s"$OBO/RO_0002263") // material entity to process
   val ActsUpstreamOfPositiveEffect = ObjectProperty(s"$OBO/RO_0004034") // material entity to process
   val ActsUpstreamOfNegativeEffect = ObjectProperty(s"$OBO/RO_0004035") // material entity to process
   val CausallyUpstreamOf = ObjectProperty(s"$OBO/RO_0002411") // process to process
   val CausallyUpstreamOfPositiveEffect = ObjectProperty(s"$OBO/RO_0002304") // process to process
   val CausallyUpstreamOfNegativeEffect = ObjectProperty(s"$OBO/RO_0002305") // process to process
+  val Regulates = ObjectProperty(s"$OBO/RO_0002211")
+  val NegativelyRegulates = ObjectProperty(s"$OBO/RO_0002212")
+  val PostitivelyRegulates = ObjectProperty(s"$OBO/RO_0002213")
   val OccursIn = ObjectProperty(s"$OBO/BFO_0000066")
   val PartOf = ObjectProperty(s"$OBO/BFO_0000050")
   val HasInput = ObjectProperty(s"$OBO/RO_0002233")
@@ -34,6 +37,7 @@ object Vocab {
   val InputOf = ObjectProperty(s"$OBO/RO_0002352")
   val Enables = ObjectProperty(s"$OBO/RO_0002327")
   val EnabledBy = ObjectProperty(s"$OBO/RO_0002333")
+  val HasSmallMoleculeActivator = ObjectProperty(s"$OBO/RO_0012001")
   val TransportsOrMaintainsLocalizationOf = ObjectProperty(s"$OBO/RO_0002313")
   val MolecularFunction = Class(s"$OBO/GO_0003674")
   val Transport = Class(s"$OBO/GO_0006810")
@@ -110,15 +114,15 @@ object Vocab {
 
   def materialToProcess(degree: String): OWLObjectProperty = degree match {
     case "1" => ActsUpstreamOf
-    case "0" => TopProperty //TODO
+    case "0" => CausallyRelatedTo
     case "+" => ActsUpstreamOfPositiveEffect
     case "-" => ActsUpstreamOfNegativeEffect
   }
 
   def processToProcess(degree: String): OWLObjectProperty = degree match {
-    case "1" => CausallyUpstreamOf
-    case "0" => TopProperty //TODO
-    case "+" => CausallyUpstreamOfPositiveEffect
-    case "-" => CausallyUpstreamOfNegativeEffect
+    case "1" => Regulates
+    case "0" => CausallyRelatedTo
+    case "+" => PostitivelyRegulates
+    case "-" => NegativelyRegulates
   }
 }

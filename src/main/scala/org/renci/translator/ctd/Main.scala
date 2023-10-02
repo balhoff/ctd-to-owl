@@ -73,10 +73,14 @@ object Main extends App {
       case Interaction("rxn" :: Nil, _, subject :: Interaction(_, innerNode, _) :: Nil) =>
         val subjectStuff = subject match {
           case atomic: AtomicActor =>
+            val relation = atomic match {
+              case Chemical(_) => HasSmallMoleculeActivator
+              case Gene(_)     => EnabledBy
+            }
             val (subjInd, subjAxioms) = atomic.owl(taxonIndex, meshToCHEBI, includeLabels)
             val subjProcess = Individual(s"${subjInd.getIRI.toString}-process")
             Some((subjProcess, subjAxioms ++ Set(subjProcess Type Process,
-              subjProcess Fact(HasParticipant, subjInd))))
+              subjProcess Fact(relation, subjInd))))
           case ixn: Interaction    => interaction(ixn.node, taxonIndex, meshToCHEBI, includeLabels).map(res => (res._1, res._3))
         }
         for {
@@ -95,10 +99,14 @@ object Main extends App {
         if itypes.forall(Set("act", "pho", "exp", "myl", "sec", "loc", "clv", "mut", "deg", "spl", "rec", "sta", "met", "oxd", "ubq", "nit", "upt", "red", "alk", "sum", "gyc", "trt", "glc", "csy", "upt", "red", "hdx")) =>
         val subjectStuff = subject match {
           case atomic: AtomicActor =>
+            val relation = atomic match {
+              case Chemical(_) => HasSmallMoleculeActivator
+              case Gene(_)     => EnabledBy
+            }
             val (subjInd, subjAxioms) = atomic.owl(taxonIndex, meshToCHEBI, includeLabels)
             val subjProcess = Individual(s"${subjInd.getIRI.toString}-process")
             Some((subjProcess, subjAxioms ++ Set(subjProcess Type Process,
-              subjProcess Fact(HasParticipant, subjInd))))
+              subjProcess Fact(relation, subjInd))))
           case ixn: Interaction    => interaction(ixn.node, taxonIndex, meshToCHEBI, includeLabels).map(res => (res._1, res._3))
         }
         for {
